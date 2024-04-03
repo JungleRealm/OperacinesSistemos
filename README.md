@@ -1,5 +1,8 @@
 # OperacinesSistemos
 
+Projekto dokumentas:
+https://docs.google.com/document/d/1pGB-vz-ZjPa4dmjG2OiJROkxBb-tjP7kLo9eOjqDCvM/edit
+
 Projektas kuriamas naudojantis pavyzdziu:
 https://github.com/lbstore/MIF_Informatics_Semester6/blob/master/Operacin%C4%97s%20sistemos/Pratybos/2%20u%C5%BEduotis%20-%20Laisvydas%2C%20Jonas/OS/src/InputDevice.java
 
