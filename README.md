@@ -8,6 +8,13 @@ https://github.com/lbstore/MIF_Informatics_Semester6/blob/master/Operacin%C4%97s
 
 Kolkas yra sukurta tik Main funkcija kuri kviecia InputDevice klase. Input Device perskaito faila ir isskirsto ji i keyword'us. Tada keywordu masyvas persiunciamas CPU klasei, kurioje vyks tolimesnis ju interpretavimas.
 
+Projekto eiga:
+1. Is flash'o nuskaitoma informacija (run file'as) i kompiuterio harda ir patikrinama ar uztenka atminties
+2. Sukuriama virtuali masina kuri naudoja realios masinos atminti
+3. Patikrinama ar run file'as tilps virtalios masinos atmintyje
+4. Run failas perkeliamas i virtualios masinos atminti
+5. Vykdomas run failas
+
 TODO:
 1. Issiaiskinti kaip veikia puslapiavimas
 2. Issiaiskinti kaip veikia veikstai su atmintim
