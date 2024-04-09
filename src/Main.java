@@ -1,27 +1,24 @@
-package Main;
-
-import Main.CPU;
-import Main.RealMachine;
-import Main.Word;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-
 public class Main {
     public static void main(String[] args) {
-        // Path to the .txt file
-        String filePath = "C:\\Projects\\OSMain\\files\\Test.txt";
 
-        CPU cpu = new CPU();
-        InputDevice inputDevice = new InputDevice(filePath);
-        ArrayList<String> commandList = inputDevice.getInput();
+        RealMachine realMachine = new RealMachine();
+        int i;
 
-        int i = 0;
-        while(!commandList.isEmpty()){
-            cpu.doCycle(commandList.get(i));
-            commandList.remove(i);
+        try {
+            i = realMachine.loadProgram("C:\\Projects\\OSMain\\files\\Test1.txt");
+            System.out.println("Program loaded successfully with index " + i);
+            int stop = 0;
+            while (stop == 0) {
+                stop = realMachine.nextStep();
+            }
+
+        } catch (LoaderParseException ex) {
+            System.out.println("Loading failed. Could not parse specified file.");
+        } catch (OutOfMemoryException ex){
+            System.out.println("Loading failed. Not enough memory.");
+        } catch (MemoryException ex) {
+            System.out.println("Unexpected memory failure. Loading failed.");
         }
-
 
     }
 }

@@ -1,52 +1,44 @@
-package Main;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import javax.swing.JTextField;
 
 public class InputDevice {
 
     // Change path for testing purposes
-    String filePath;
-
-    InputDevice(String filePath){
-        this.filePath = filePath;
-    }
+    String filePath = "C:\\Projects\\OSMain\\files\\Test1.txt";
 
 
-    public ArrayList<String> getInput(){
+    public Word[] getInput(){
         try (BufferedReader reader = new BufferedReader(new FileReader(this.filePath))){
 
             String line;
-            ArrayList<String> commands = new ArrayList<>();
+            byte[] bytes;
+            Word[] words;
 
             while ((line = reader.readLine()) != null) {
-                // Split the line into words using space as delimiter
-                String[] words = line.split(" ");
-                //System.out.println(line);
+                bytes = line.getBytes();
 
-                // Iterate through the words
-                for (String word : words) {
-                    // Add the word to the list
-                    commands.add(word);
-
-                    // If the word is "HALT", stop reading
-                    if (word.equals("HALT")) {
-                        return commands;
+                if(bytes.length%4 != 0) {
+                    words = new Word[(bytes.length/4)+1];
+                }
+                else words = new Word[bytes.length/4];
+                for(int i = 0; i < words.length; i++) {
+                    words[i] = new Word();
+                }
+                int i = 3, j = 0;
+                for(byte b : bytes) {
+                    if (i >= 0) {
+                        words[j].setByte(i, b);
+                        i--;
+                    }
+                    else {
+                        i = 3;
+                        j++;
+                        words[j].setByte(i, b);
                     }
                 }
-
-                // If "HALT" is found, break from the outer loop as well
-                if (commands.contains("HALT")) {
-                    return commands;
-                }
+                return words;
             }
-            return commands;
         }
         catch(IOException exception) {
             exception.printStackTrace();
