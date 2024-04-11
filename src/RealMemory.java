@@ -1,47 +1,39 @@
-import java.util.Arrays;
+public class RealMemory {
+    private static final int COMMAND_SIZE = 4; // Size of each command in bytes
+    private int[] memory = null;
 
+    public RealMemory(int size) {
+        memory = new int[size];
+    }
 
+    public Word read(int address) {
+        return Word.intToWord(memory[address]);
+    }
 
-public class RealMemory implements Memory {
-    private int size; //words
-    private Word[] memory;
+    public void write(int address, int data) {
+//        System.out.println("address: " + address + " data: " + data);
+        memory[address] = data;
+    }
 
-    public RealMemory(int size){
-        if(size >= 0){
-            this.size = size;
-            memory = new Word[size];
-            for(int i = 0; i < size; i++){
-                memory[i] = new Word();
-            }
+    public int getSize() {
+        return memory.length;
+    }
+
+//    public int getCommandSize(){
+//        return this.getCommandSize();
+//    }
+
+    public Word pop(int address) throws MemoryOutOfBoundsException {
+        if (isValidAddress(address)) {
+            Word data = Word.intToWord(memory[address]);
+            memory[address] = 0; // Clear the memory location
+            return data;
         } else {
-            throw new IllegalArgumentException();
+            throw new MemoryOutOfBoundsException();
         }
     }
 
-    public RealMemory(RealMemory mem){
-        if(mem == null)
-            throw new IllegalArgumentException();
-        size = mem.size;
-
-    }
-
-
-
-    @Override
-    public Word read(int address){
-        return memory[address].clone();
-    }
-    @Override
-    public void write(Word word, int address){
-        memory[address] = word.clone();
-    }
-
-    @Override
-    public int getSize() {
-        return size;
-    }
-
-    public Word[] viewData(){
-        return Arrays.copyOf(memory, size);
+    public boolean isValidAddress(int address) {
+        return address >= 0 && address < memory.length;
     }
 }

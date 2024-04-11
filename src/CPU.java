@@ -1,28 +1,9 @@
-import jdk.swing.interop.SwingInterOpUtils;
-
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Stack;
 
 public class CPU {
 
-    public final static byte PUSH = 10; //"PUSH";
-    public final static byte POP = 20; //"POP";
-    public final static byte POP1 = 31; //"POP";
-    public final static byte POP0 = 32; //"POP";
-    public final static byte ADD = 50; //"ADD";
-    public final static byte SUB = 60; //"SUB";
-    public final static byte MUL = 70; //"MUL";
-    public final static byte DIV = 80; //"DIV";
-
-    public final static byte JB = 90; //"JB";
-    public final static byte JA = 100; //"JA";
-    public final static byte JZ = 110; //"JZ";
-
-    public final static byte GETD = (byte) 120; //"GETD"; // LOADxy
-    public final static byte PUTD = (byte) 130; //"PUTD";
-    public final static byte HALT = (byte) 140; //"HALT";
-    public final static byte PRTN = (byte) 150; //"HALT";
+    private MemoryManagementUnit memoryManagementUnit;
+    private Output output;
 
 
     private int MODE;
@@ -30,209 +11,298 @@ public class CPU {
     private int PC; //Komandos skaitliukas. It keeps track of the memory address of the next instruction to be fetched and executed
     private int TI; //Taimeris. Kas nurodyta laika generuoja interuptus
     private int SP; //Steko virsunes indeksas. It points to the top of the stack in memory.
-    private int SI; //It represents the program interrupt type. It can indicate errors or exceptional conditions encountered during program execution, such as invalid memory access or undefined instructions.
-    private int PI; //It represents the program interrupt type. It can indicate errors or exceptional conditions encountered during program execution, such as invalid memory access or undefined instructions.
-
-    private MemoryManagementUnit memoryManagementUnit;
+    private int Interrupt; //It represents the program interrupt type. It can indicate errors or exceptional conditions encountered during program execution, such as invalid memory access or undefined instructions.
 
     private static final int TIME = 20;
     public static final int SUPERVISOR = 0;
-    public static final int USER = 1; //????
 
-    public CPU() {
+    public CPU(MemoryManagementUnit memoryManagementUnit, Output output) {
+        this.memoryManagementUnit = memoryManagementUnit;
+        this.output = output;
+
         MODE = SUPERVISOR; //Veikimo rezimas
         PC = 0; //Komandos skaitliukas
-        SP = 0; //Steko virsunes indeksas
+        SP = 1000; //Steko virsunes indeksas
         TI = TIME; //Laiko sekimo registras
-        SI = 0; //Source index ??????
-        PI = 0; //Processor register ???
+        Interrupt = 0; //Source index ??????
     }
 
-    public void setMemoryManagementUnit(MemoryManagementUnit memoryManagementUnit) {
-        this.memoryManagementUnit = memoryManagementUnit;
-    }
-
-    public void resetInterrupts() {
+    public void resetInterrupts(){
         resetTI();
-        SI = 0;
-        PI = 0;
+        Interrupt = 0;
     }
 
-    public void doCycle() {
-        try {
-            interpretCommand(memoryManagementUnit.read(PC));
-        } catch (Exception memoryException) {
-            memoryException.printStackTrace();
-            Logger.getLogger(CPU.class.getName()).log(Level.SEVERE, null, memoryException);
-        }
-        TI--;
-    }
+    public void run() throws MemoryOutOfBoundsException {
+        Word instruction;
+        int command;
+        int operand2;
+        int operand1;
+        Word wordOperand1;
+        Word wordOperand2;
+        int result;
 
-    /*
-        Switch cases:
-        PUSH - 1
-        POP - 2
-        POP1 - 3
-        POP0 - 4
-        ADD - 5
-        SUB - 6
-        MUL - 7
-        DIV - 8
-        JB - 9
-        JA - 10
-        JZ - 11
-        GETD - 12 //Load
-        PUTD - 13
-        HALT - 14
-        */
-    private void interpretCommand(Word word) {
-        PC++;
-        byte command = word.getByte(3);
-        word.setByte(3, (byte) 0);
-        try {
-            switch (command) {
-                // PUSH xy
-                case PUSH: {
-                    System.out.println("PUSH");
-                    memoryManagementUnit.write(memoryManagementUnit.read(Word.wordToInt(word)), SP);
-                    SP++;
-                    break;
-                }
-                // POP xy
-                case POP: {
-                    System.out.println("POP");
-                    memoryManagementUnit.write(memoryManagementUnit.read(SP-1), Word.wordToInt(word));
-                    SP--;
-                    break;
-                }
-                // POP xy
-                case POP1: {
-                    System.out.println("POP1");
-                    memoryManagementUnit.write(memoryManagementUnit.read(SP-1), Word.wordToInt(word));
-                    SP--;
-                    break;
-                }
-                // POP xy
-                case POP0: {
-                    System.out.println("POP0");
-                    memoryManagementUnit.write(memoryManagementUnit.read(SP-1), Word.wordToInt(word));
-                    SP--;
-                    break;
-                }
-                // ADD
-                case ADD: {
-                    System.out.println("ADD");
-                    memoryManagementUnit.write(Word.intToWord(Word.wordToInt(memoryManagementUnit.read(SP-2)) + Word.wordToInt(memoryManagementUnit.read(SP-1))), SP-2);
-                    SP--;
-                    break;
-                }
-                // SUB
-                case SUB: {
-                    System.out.println("SUB");
-                    memoryManagementUnit.write(Word.intToWord(Word.wordToInt(memoryManagementUnit.read(SP-2)) - Word.wordToInt(memoryManagementUnit.read(SP-1))), SP-2);
-                    SP--;
-                    break;
-                }
-                // MUL
-                case MUL: {
-                    System.out.println("MUL");
-                    memoryManagementUnit.write(Word.intToWord(Word.wordToInt(memoryManagementUnit.read(SP-2)) * Word.wordToInt(memoryManagementUnit.read(SP-1))), SP-2);
-                    SP--;
-                    break;
-                }
-                // DIV
-                case DIV: {
-                    System.out.println("DIV");
-                    memoryManagementUnit.write(Word.intToWord(Word.wordToInt(memoryManagementUnit.read(SP-2)) / Word.wordToInt(memoryManagementUnit.read(SP-1))), SP-2);
-                    SP--;
-                    break;
-                }
-                // JB
-                case JB: {
-                    System.out.println("JB");
-                    if(Word.wordToInt(memoryManagementUnit.read(SP-1)) < 0) {
-                        PC = Word.wordToInt(word);
+        //while (!(instruction == null)) {
+            for(int i = 0; (i < memoryManagementUnit.getArraySize()) && Interrupt==0; i++){
+            //Word instruction = instruction.pop();
+            instruction = fetchInstructions();
+            command = Word.wordToInt(instruction);
+
+
+            switch (interpretValue(command)) {
+                case "PUSH":
+//                    System.out.println("PUSH reached");
+
+                    try {
+                        Word wordParameter = fetchInstructions();
+                        if (wordParameter == null) {
+                            System.out.println("Missing parameter for PUSH instruction");
+                            getInterrupt(2);
+                            return;
+                        }
+                        memoryManagementUnit.getRealMemory().write(SP, Word.wordToInt(wordParameter));
+                        System.out.println("SP: " + SP + " Data: " + Word.wordToInt(wordParameter));
+                        SP++;
+                        i++;
+
+                    } catch (NumberFormatException e) {
+                        //System.out.println("Invalid parameter for PUSH instruction");
+                        getInterrupt(2);
+                        return;
                     }
                     break;
-                }
-                // JA
-                case JA: {
-                    System.out.println("JA");
-                    if(Word.wordToInt(memoryManagementUnit.read(SP-1)) > 0) {
-                        PC = Word.wordToInt(word);
+
+                case "ADD":
+                    System.out.println("ADD reached");
+
+                    SP--;
+                    wordOperand2 = memoryManagementUnit.getRealMemory().pop(this.SP);
+
+                    SP--;
+                    wordOperand1 = memoryManagementUnit.getRealMemory().pop(this.SP);
+
+                    if (wordOperand1 == null || wordOperand2 == null) {
+                        //System.out.println("Error: Not enough operands for ADD instruction");
+                        getInterrupt(2);
+                        return;
+                    } else {
+                        operand2 = Word.wordToInt(wordOperand2);
+                        operand1 = Word.wordToInt(wordOperand1);
+                        result = operand1 + operand2;
+
+                        memoryManagementUnit.getRealMemory().write(this.SP, result);
+                        SP++;
+
+                        System.out.println(operand1 + " + " + operand2 + " = " + result);
+
                     }
                     break;
-                }
-                //JZ
-                case JZ: {
-                    System.out.println("JZ");
-                    if(Word.wordToInt(memoryManagementUnit.read(SP-1)) == 0) {
-                        PC = Word.wordToInt(word);
+
+                case "MUL":
+                    System.out.println("MUL reached");
+
+                    SP--;
+                    wordOperand2 = memoryManagementUnit.getRealMemory().pop(this.SP);
+
+                    SP--;
+                    wordOperand1 = memoryManagementUnit.getRealMemory().pop(this.SP);
+
+                    if (wordOperand1 == null || wordOperand2 == null) {
+                        //System.out.println("Error: Not enough operands for MUL instruction");
+                        getInterrupt(2);
+                        return;
+                    } else {
+                        operand2 = Word.wordToInt(wordOperand2);
+                        operand1 = Word.wordToInt(wordOperand1);
+                        result = operand1 * operand2;
+
+                        memoryManagementUnit.getRealMemory().write(this.SP, result);
+                        SP++;
+
+                        System.out.println(operand1 + " * " + operand2 + " = " + result);
                     }
                     break;
-                }
-                 //GETD xy
-                case GETD: {
-                    System.out.println("GETD");
-                    SI = 1;
+
+                case "POP":
+                    System.out.println("POP reached");
+                    SP--;
+                    if (memoryManagementUnit.getRealMemory().read(this.SP) == null){
+                        //System.out.println("Nothing to POP, stack is empty");
+                        getInterrupt(2);
+                        return;
+                    } else {
+
+                        memoryManagementUnit.getRealMemory().pop(this.SP);
+                    }
                     break;
-                }
-                // PUTD xy
-                case PUTD: {
-                    System.out.println("PUTD");
-                    SI = 2;
+
+                case "SUB":
+                    System.out.println("SUB reached");
+
+                    SP--;
+                    wordOperand2 = memoryManagementUnit.getRealMemory().pop(this.SP);
+
+                    SP--;
+                    wordOperand1 = memoryManagementUnit.getRealMemory().pop(this.SP);
+
+                    if (wordOperand1 == null || wordOperand2 == null) {
+                        System.out.println("Error: Not enough operands for SUB instruction");
+                    } else {
+                        operand2 = Word.wordToInt(wordOperand2);
+                        operand1 = Word.wordToInt(wordOperand1);
+                        result = operand1 - operand2;
+
+                        memoryManagementUnit.getRealMemory().write(this.SP, result);
+                        SP++;
+
+                        System.out.println(operand1 + " - " + operand2 + " = " + result);
+                    }
                     break;
-                }
-                // HALT
-                case HALT: {
-                    System.out.println("HALT");
-                    SI = 3;
+
+                case "DIV":
+                    System.out.println("DIV reached");
+
+                    SP--;
+                    wordOperand2 = memoryManagementUnit.getRealMemory().pop(this.SP);
+
+                    SP--;
+                    wordOperand1 = memoryManagementUnit.getRealMemory().pop(this.SP);
+
+                    if (wordOperand1 == null || wordOperand2 == null) {
+                        //System.out.println("Error: Not enough operands for DIV instruction");
+                        getInterrupt(2);
+                        return;
+                    } else {
+                        operand2 = Word.wordToInt(wordOperand2);
+                        operand1 = Word.wordToInt(wordOperand1);
+                        result = operand1 / operand2;
+
+                        memoryManagementUnit.getRealMemory().write(this.SP, result);
+                        SP++;
+
+                        System.out.println(operand1 + " / " + operand2 + " = " + result);
+                    }
                     break;
-                }
-                //PRTN
-                case PRTN: {
-                    System.out.println("PRTN");
-                }
-                default: {
-                    System.out.println("DEFAULT: " + command);
-                    PI = 2;
+
+                case "JB":
+                    System.out.println("JB reached");
                     break;
-                }
+
+                case "JA":
+                    System.out.println("JA reached");
+                    break;
+
+                case "JZ":
+                    System.out.println("JZ reached");
+                    break;
+
+                case "GETD":
+                    System.out.println("GETD reached");
+                    break;
+
+                case "PUTD":
+                    System.out.println("PUTD reached");
+                    break;
+
+                case "PRTN":
+                    System.out.println("PRTN reached");
+                    SP--;
+                    wordOperand1 = memoryManagementUnit.getRealMemory().pop(SP);
+                    if (wordOperand1 == null){
+                        getInterrupt(2);
+                        return;
+                    }
+                    operand1 = Word.wordToInt(wordOperand1);
+                    output.add(Integer.toString(operand1));
+                    break;
+
+                case "PRTS":
+                    System.out.println("PRTS reached");
+                    break;
+
+                case "HALT": //HALT
+                    System.out.println("HALT reached");
+                    output.print();
+                    getInterrupt(5);
+                    return;
+
+                default:
+                    System.out.println("Default reached");
+                    //System.out.println("Error: Unknown instruction: " + instruction + " Instruction integer value: " + Word.wordToInt(instruction));
+                    getInterrupt(4);
+                    return;
             }
-        } catch (MemoryException memoryException) {
-            PI = 1;
-        } catch (Exception exception) {
-            SI = 4;
-            PC--;
-            //NOTE: after swap we need to reexecute command
+
+            TI--;
+            if(checkTimeInterrupt()){
+                this.Interrupt = 1;
+                return;
+            }
+
+        }
+
+    }
+
+    private Word fetchInstructions() throws MemoryOutOfBoundsException {
+        Word instruction;
+
+        if (this.PC <= memoryManagementUnit.getMaxCommandSize()* memoryManagementUnit.getMemoryPointer()) {
+
+            instruction = memoryManagementUnit.getRealMemory().pop(this.getPC());
+            System.out.println("Fetched element: " + Word.wordToInt(instruction));
+            this.setPC(this.getPC()+memoryManagementUnit.getMaxCommandSize());
+            return instruction;
+
+        } else {
+            getInterrupt(3);
+            return null;
         }
     }
 
+    public static String interpretValue(int value) {
+        // Assuming each value represents a command or operand
+        switch (value) {
+            case 1001:
+                return "PUSH";
+            case 1002:
+                return "ADD";
+            case 1003:
+                return "MUL";
+            case 1004:
+                return "PRTN";
+            case 1005:
+                return "HALT";
+            case 1006:
+                return "POP";
+            case 1007:
+                return "SUB";
+            case 1008:
+                return "DIV";
+            case 1009:
+                return "JB";
+            case 1010:
+                return "JA";
+            case 1011:
+                return "JZ";
+            case 1012:
+                return "GETD";
+            case 1013:
+                return "PUTD";
+            case 1014:
+                return "PRTS";
+            default:
+                return String.valueOf(value); // Default interpretation if no command matches
+        }
+    }
 
-    /*
-    1 - neteisingas adresas
-    2 - neegzistuoja operacijos kodas
-    3 - nepakanka atminties isoriniame diske
-    4 - komanda GETD
-    5 - PUTD
-    6 - HALT
-    7 - taimerio
-    8 - swapinimo
-    */
-    public int getInterrupt() {
-        switch (PI) {
-            case 1: return 1;
-            case 2: return 2;
-            case 3: return 3;
-        }
-        switch(SI) {
-            case 1: return 4;
-            case 2: return 5;
-            case 3: return 6;
-            case 4: return 8;
-        }
-        if(TI == 0) {
-            return 7;
+    public int getInterrupt(int interrupt){
+        switch (interrupt){
+            case 1: System.out.println("Time interrupt occurred"); return 1; // Time interrupt
+            case 2: System.out.println("Missing parameters interrupt occurred"); return 2; // Missing parameters interrupt
+            case 3: System.out.println("No instruction found in memory interrupt occurred"); return 3; // Time interrupt
+            case 4: System.out.println("Undefined instruction found interrupt occurred"); return 4;
+            case 5: System.out.println("HALT reached. HALT interrupt"); return 5;
+            case 6: System.out.println("HALT reached. HALT interrupt"); return 6;
+
         }
         return 0;
     }
@@ -273,28 +343,12 @@ public class CPU {
         this.TI = TI;
     }
 
-    public int getSI() {
-        return SI;
-    }
-
-    public void setSI(int SI) {
-        this.SI = SI;
-    }
-
-    public int getPI() {
-        return PI;
-    }
-
-    public void setPI(int PI) {
-        this.PI = PI;
-    }
-
     public int getMODE() {
         return MODE;
     }
 
-    public void setMODE(int MODE) {
-        this.MODE = MODE;
+    public boolean checkTimeInterrupt(){
+        return this.TI <= 0;
     }
 
 }

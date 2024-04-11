@@ -1,24 +1,27 @@
+import java.io.IOException;
+import java.util.List;
+import java.util.Stack;
+
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, MemoryOutOfBoundsException, NotEnoughMemoryException {
 
         RealMachine realMachine = new RealMachine();
-        int i;
 
-        try {
-            i = realMachine.loadProgram("C:\\Projects\\OSMain\\files\\Test1.txt");
-            System.out.println("Program loaded successfully with index " + i);
-            int stop = 0;
-            while (stop == 0) {
-                stop = realMachine.nextStep();
-            }
+//        System.out.println("---------------------------------------------------------------");
+        Stack<Word> commands = Input.readFile("C:\\Projects\\OS_2_final\\Files\\Test1.txt");
+//        System.out.println(commands);
+//        System.out.println("After reading input");
+//        for(int i = 0; i < commands.size(); i++){
+//            System.out.println(Word.wordToInt(commands.get(i)));
+//        }
+//        System.out.println("-----------------------------------------------------------------");
 
-        } catch (LoaderParseException ex) {
-            System.out.println("Loading failed. Could not parse specified file.");
-        } catch (OutOfMemoryException ex){
-            System.out.println("Loading failed. Not enough memory.");
-        } catch (MemoryException ex) {
-            System.out.println("Unexpected memory failure. Loading failed.");
-        }
+        realMachine.storeCommands(commands);
+//        System.out.println("-------------------------------------------------------------------");
+
+
+        realMachine.run();
+
 
     }
 }
