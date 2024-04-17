@@ -3,27 +3,17 @@ import java.util.Stack;
 
 
 //TODO Interrupt handling in RealMachine
-
-
 public class RealMachine {
-
-    Stack<String> readInput;
-
 
     public static Stack<String> read(String filePath) throws IOException {
         return Input.readFile(filePath);
     }
 
-    public static void initializeVirtualMachine(){
-        //TODO fill in initializeVirtualMachine method
-
+    public static VirtualMachine initializeVirtualMachine(){
         VirtualMachine virtualMachine = new VirtualMachine();
         ChannelDevice.moveFromSupervizorToVirtualMachineMemory(virtualMachine);
-        virtualMachine.run();
-
-
-
-
+//        virtualMachine.printVirtualMachineMemory();
+        return virtualMachine;
     }
 
     public static Stack<Byte> convertToBytes(Stack<String> input){
@@ -59,18 +49,17 @@ public class RealMachine {
                 return null;
             }
         }
-
         return byteWords;
     }
 
-    public static Stack<Byte> reverseStack(Stack<Byte> inputStack){
-        Stack<Byte> reversedStack = new Stack<>();
-
-        while(!inputStack.empty()){
-            reversedStack.push(inputStack.pop());
+    public static Stack<Byte> reverseStack(Stack<Byte> input){
+        Stack<Byte> result = new Stack<>();
+        while(!input.empty()){
+            result.push(input.pop());
         }
-        return reversedStack;
+        return result;
     }
+
 
     public static Stack<Byte> orderStack(Stack<Byte> input){
         Stack<Byte> ordered = new Stack<>();
@@ -91,13 +80,12 @@ public class RealMachine {
         return ordered;
     }
 
-    public static void run(){
-        //TODO fill in run method
+    public static int convertCommandToInteger(String input){
+        // Remove leading zeros
+        String trimmedStr = input.replaceFirst("^0+(?!$)", "");
+        // Convert string to integer
+        return Integer.parseInt(trimmedStr);
     }
-
-
-
-
 
 
 }

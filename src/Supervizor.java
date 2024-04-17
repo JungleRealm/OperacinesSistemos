@@ -1,7 +1,7 @@
 public class Supervizor {
 
     private static final int supervizorMemoryBlocks = 16; //BLOCKS
-    private static final int fullSupervizorMemory = supervizorMemoryBlocks * RealMemory.getWords() * RealMemory.getWordSize();
+    private static final int fullSupervizorMemory = (supervizorMemoryBlocks * RealMemory.getWords() * RealMemory.getWordSize());
     private static int supervizoryMemoryStart = 0;
     private static int supervizorMemoryEnd = 0;
 

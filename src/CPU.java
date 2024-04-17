@@ -1,3 +1,5 @@
+import java.util.Stack;
+
 public class CPU {
 
     public static final int SUPERVISOR = 0;
@@ -24,91 +26,164 @@ public class CPU {
         resetTI();
     }
 
-    public static void run(int pointerToStart, int pointerToEnd){
+    public static void run(VirtualMachine virtualMachine){
+//        System.out.println(pointerToResultStack);
+        String command;
+        command = RealMemory.getCommand(virtualMachine);
+//        virtualMachine.printAllVMMemory();
+//        System.out.println("i = " + i + "; " + " Command found = " + command + " PointerToEnd = " + pointerToEnd);
+        if (command != null){
 
-        SP = pointerToStart;
-//        System.out.println(SP);
+            interpretCommand(command, virtualMachine);
+//            virtualMachine.testDataPrint();
+//            System.out.println("-----------------");
 
-        for (int i = pointerToStart; i < pointerToEnd; i=i+RealMemory.getWordSize()){
-            String command = getCommand();
-//            System.out.println(command);
-            if (command != null){
-                interpretCommand(getCommand());
-                SP = SP + RealMemory.getWordSize();
-            } else {
-                System.out.println("Illegal Argument encountered when fetching command");
-                return;
-            }
-
-        }
-
-
-
-    }
-
-    public static String getCommand(){
-        byte character1 = RealMemory.getElementFromMemory(SP);
-        byte character2 = RealMemory.getElementFromMemory(SP+1);
-        byte character3 = RealMemory.getElementFromMemory(SP+2);
-        byte character4 = RealMemory.getElementFromMemory(SP+3);
-        return cropWord(character1, character2, character3, character4);
-    }
-
-    public static String cropWord(byte character1, byte character2, byte character3, byte character4){
-        StringBuilder word = new StringBuilder();
-        if (character1 == 0){
-            if (character2 == 0){
-                if (character3 == 0){
-                    if (character4 == 0){
-//                        System.out.println("Illegal Argument encountered when fetching command");
-                        return null;
-                    } else {
-                        word.append((char) character4);
-                    }
-                } else {
-                    word.append((char) character3);
-                    word.append((char) character4);
-                }
-            } else {
-                word.append((char) character2);
-                word.append((char) character3);
-                word.append((char) character4);
-            }
         } else {
-            word.append((char) character1);
-            word.append((char) character2);
-            word.append((char) character3);
-            word.append((char) character4);
+            System.out.println("Illegal Argument encountered when fetching command");
+            return;
         }
-        return word.toString();
+
+
+        TI--;
+        getInterrupt();
     }
 
     //TODO finish interpret command method to do what the command should
 
-    public static void interpretCommand(String command){
+    public static void interpretCommand(String command, VirtualMachine virtualMachine){
+        String operand2;
+        String operand1;
+        Stack<String> temp = new Stack<>();
+        Stack<Byte> result = new Stack<>();
+
+        byte character1;
+        byte character2;
+        byte character3;
+        byte character4;
+        byte character5;
+        byte character6;
+        byte character7;
+        byte character8;
+
+
         switch (command){
             case "PUSH":
+                // DONE
                 System.out.println("PUSH");
+
+                for (int i = 0; i < RealMemory.getWordSize(); i++){
+                    virtualMachine.writeToResultStackMemory(virtualMachine.getPointerToResultStackEnd(), virtualMachine.popElementFromVirtualMachineMemory());
+                }
                 break;
 
             case "POP":
+                // DONE
                 System.out.println("POP");
+                for (int i = 0; i < RealMemory.getWordSize(); i++){
+                    virtualMachine.popElementFromResultStack();
+                }
                 break;
 
             case "ADD":
                 System.out.println("ADD");
+
+                character1 = virtualMachine.popElementFromResultStack();
+                character2 = virtualMachine.popElementFromResultStack();
+                character3 = virtualMachine.popElementFromResultStack();
+                character4 = virtualMachine.popElementFromResultStack();
+
+                operand2 = RealMemory.cropWord(character4, character3, character2, character1);
+
+                character5 = virtualMachine.popElementFromResultStack();
+                character6 = virtualMachine.popElementFromResultStack();
+                character7 = virtualMachine.popElementFromResultStack();
+                character8 = virtualMachine.popElementFromResultStack();
+
+                operand1 = RealMemory.cropWord(character8, character7, character6, character5);
+
+                temp.push(Integer.toString (RealMachine.convertCommandToInteger(operand2) + RealMachine.convertCommandToInteger(operand1)));
+                result = RealMachine.reverseStack(RealMachine.convertToBytes(temp));
+                for (int i = 0; i < RealMemory.getWordSize(); i++){
+                    virtualMachine.writeToResultStackMemory(virtualMachine.getPointerToResultStackEnd(), result.pop());
+                }
+
                 break;
 
             case "SUB":
                 System.out.println("SUB");
+
+                character1 = virtualMachine.popElementFromResultStack();
+                character2 = virtualMachine.popElementFromResultStack();
+                character3 = virtualMachine.popElementFromResultStack();
+                character4 = virtualMachine.popElementFromResultStack();
+
+                operand2 = RealMemory.cropWord(character4, character3, character2, character1);
+
+                character5 = virtualMachine.popElementFromResultStack();
+                character6 = virtualMachine.popElementFromResultStack();
+                character7 = virtualMachine.popElementFromResultStack();
+                character8 = virtualMachine.popElementFromResultStack();
+
+                operand1 = RealMemory.cropWord(character8, character7, character6, character5);
+
+                temp.push(Integer.toString (RealMachine.convertCommandToInteger(operand2) - RealMachine.convertCommandToInteger(operand1)));
+
+//                System.out.println(temp);
+                result = RealMachine.reverseStack(RealMachine.convertToBytes(temp));
+//                System.out.println(result);
+                for (int i = 0; i < RealMemory.getWordSize(); i++){
+                    virtualMachine.writeToResultStackMemory(virtualMachine.getPointerToResultStackEnd(), result.pop());
+                }
                 break;
 
             case "MUL":
                 System.out.println("MUL");
+                character1 = virtualMachine.popElementFromResultStack();
+                character2 = virtualMachine.popElementFromResultStack();
+                character3 = virtualMachine.popElementFromResultStack();
+                character4 = virtualMachine.popElementFromResultStack();
+
+                operand2 = RealMemory.cropWord(character4, character3, character2, character1);
+
+                character5 = virtualMachine.popElementFromResultStack();
+                character6 = virtualMachine.popElementFromResultStack();
+                character7 = virtualMachine.popElementFromResultStack();
+                character8 = virtualMachine.popElementFromResultStack();
+
+                operand1 = RealMemory.cropWord(character8, character7, character6, character5);
+
+                temp.push(Integer.toString (RealMachine.convertCommandToInteger(operand2) * RealMachine.convertCommandToInteger(operand1)));
+//                System.out.println(temp);
+                result = RealMachine.reverseStack(RealMachine.convertToBytes(temp));
+//                System.out.println(result);
+                for (int i = 0; i < RealMemory.getWordSize(); i++){
+                    virtualMachine.writeToResultStackMemory(virtualMachine.getPointerToResultStackEnd(), result.pop());
+                }
+
                 break;
 
             case "DIV":
                 System.out.println("DIV");
+
+                character1 = virtualMachine.popElementFromResultStack();
+                character2 = virtualMachine.popElementFromResultStack();
+                character3 = virtualMachine.popElementFromResultStack();
+                character4 = virtualMachine.popElementFromResultStack();
+
+                operand2 = RealMemory.cropWord(character4, character3, character2, character1);
+
+                character5 = virtualMachine.popElementFromResultStack();
+                character6 = virtualMachine.popElementFromResultStack();
+                character7 = virtualMachine.popElementFromResultStack();
+                character8 = virtualMachine.popElementFromResultStack();
+
+                operand1 = RealMemory.cropWord(character8, character7, character6, character5);
+
+                temp.push(Integer.toString (RealMachine.convertCommandToInteger(operand2) / RealMachine.convertCommandToInteger(operand1)));
+                result = RealMachine.reverseStack(RealMachine.convertToBytes(temp));
+                for (int i = 0; i < RealMemory.getWordSize(); i++){
+                    virtualMachine.writeToResultStackMemory(virtualMachine.getPointerToResultStackEnd(), result.pop());
+                }
                 break;
 
             case "JB":
@@ -133,15 +208,51 @@ public class CPU {
 
             case "PRTN":
                 System.out.println("PRTN");
+
+                for (int i = virtualMachine.getPointerToResultStackEnd(); i > virtualMachine.getPointerToResultStackStart(); i--){
+                    result.push(virtualMachine.popElementFromResultStack());
+                }
+                while(!result.empty()){
+                    ChannelDevice.moveFromVirtualMachineMemoryToPrinter(result.pop());
+                }
+                break;
+
+            case "FORK":
+                System.out.println("FORK");
+                //virtualMachine.decrementStackPointerByWordSize();
+                virtualMachine.incrementStackPointerByWordSize();
+                virtualMachine.fork();
+                // TODO fork wont work if there are no things to copy. Create an interrupt
+
+
                 break;
 
             case "HALT":
                 System.out.println("HALT");
+                Output.print();
                 break;
 
             default:
                 System.out.println("Non command object found: " + command);
         }
+    }
+
+    public static int getInterrupt(){
+        switch (PI){
+            case 1: return 1; // Incorrect address
+            case 2: return 2; // Illegal command
+            case 3: return 3; // Non enough space in external disk
+        }
+        switch (SI){
+            case 1: return 4; // GETD
+            case 2: return 5; // PUTD
+            case 3: return 6; // HALT
+            case 4: return 8; // Swap failed
+        }
+        if (TI == 0){
+            return 7;
+        }
+        return 0;
     }
 
     public static int getPI() {
@@ -150,5 +261,9 @@ public class CPU {
 
     public static int getSI() {
         return SI;
+    }
+
+    public static int getSP() {
+        return SP;
     }
 }

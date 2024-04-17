@@ -11,19 +11,17 @@ public class ChannelDevice {
     }
 
     public static void moveFromSupervizorToVirtualMachineMemory(VirtualMachine virtualMachine){
-        int counter = Supervizor.getSupervizoryMemoryStart();
-        while (counter != Supervizor.getSupervizorMemoryEnd()){
-//            System.out.println("StackEnd: " + virtualMachine.getStackPointer() + " " + virtualMachine.getFromVirtualMachineMemory(virtualMachine.getStackPointer()) + " <- " + Supervizor.getFromSupervizorMemory(counter));
 
-            virtualMachine.writeToVirtualMachineMemory(virtualMachine.getStackPointer(), Supervizor.getFromSupervizorMemory(counter));
-            Supervizor.removeFromSupervizorMemory(counter);
-            counter++;
+        for (int i = Supervizor.getSupervizoryMemoryStart(); i < Supervizor.getSupervizorMemoryEnd(); i++){
+//            System.out.println("stack pointer doring memory move: " + virtualMachine.getStackPointer());
+            virtualMachine.writeToVirtualMachineMemory(virtualMachine.getStackPointer(), Supervizor.getFromSupervizorMemory(i));
+            Supervizor.removeFromSupervizorMemory(i);
         }
+
     }
 
-    public static void moveFromVirtualMachineMemoryToPrinter(int fromStart, int fromStop, int toStart, int toStop){
-
-        System.out.println("Name mismatch, could not move information");
+    public static void moveFromVirtualMachineMemoryToPrinter(byte data){
+        Output.addToStack(data);
     }
 
 }

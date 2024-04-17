@@ -3,7 +3,7 @@ import java.util.Stack;
 
 public class Main {
     public static void main(String[] args) {
-        String filePath = "C:\\Projects\\OS_2_1\\Files\\test1.txt";
+        String filePath = "C:\\Projects\\OS_2_1\\Files\\test6.txt";
         Stack<String> readInput;
         try {
             readInput = RealMachine.read(filePath);
@@ -15,13 +15,10 @@ public class Main {
             if (RealMemory.setAndStoreFileSize(result.size())){
 //                System.out.println(RealMemory.getFileSizeIndex());
                 Stack<Byte> orderedStack = RealMachine.orderStack(result);
-//                System.out.println(orderedStack);
-                Stack<Byte> reversed = RealMachine.reverseStack(orderedStack);
-//                System.out.println(reversed);
-                RealMemory.storeInMemory(reversed);
+//                System.out.println(orderedStack)
+                RealMemory.storeInMemory(orderedStack);
                 ChannelDevice.moveFromRealMemoryToSupervizor(RealMemory.getFreeMemoryPointerStart(), RealMemory.getFreeMemoryPointer());
-                RealMachine.initializeVirtualMachine();
-//                CPU.run(Supervizor.getSupervizoryMemoryStart(), Supervizor.getSupervizorMemoryEnd());
+                RealMachine.initializeVirtualMachine().run();
 
             }
 

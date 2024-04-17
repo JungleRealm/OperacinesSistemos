@@ -1,4 +1,3 @@
-import java.nio.ByteBuffer;
 import java.util.Stack;
 
 public class RealMemory {
@@ -38,6 +37,7 @@ public class RealMemory {
     }
 
     public static void storeInMemory(Stack<Byte> inputStack){
+
         while (!inputStack.empty()){
             memory[freeMemoryPointer] = inputStack.pop();
             freeMemoryPointer++;
@@ -56,33 +56,9 @@ public class RealMemory {
         return wordSize;
     }
 
-
-    // TODO might need to redo this part to accept the Stack Pointer and size or something?
-    public static byte[] getMemoryArray(int start, int stop) {
-        byte[] requestedMemoryArray = new byte[stop-start];
-        for (int i = 0; i < stop - start; i++){
-            requestedMemoryArray[i] = memory[start + i];
-            removeElementFromMemory(start + i);
-        }
-        return requestedMemoryArray;
-    }
-
     public static void removeElementFromMemory(int index){
         memory[index] = 0;
     }
-
-    //TODO move this method to the ChannelDevice class. That class is responsible for moving data between components
-//    public static void writeToSupervizorMemory(byte[] array){
-//        if (array.length > supervizorMemoryBlocks *words*wordSize){
-//            System.out.println("Array is too big to be stored in a supervizor memory");
-//            return;
-//        }
-//        for (int i = 0; i < array.length; i++){
-//            memory[i] = array[i];
-//            supervizorLastElement++;
-//        }
-//    }
-
 
     public static int getFreeMemoryPointer() {
         return freeMemoryPointer;
@@ -93,8 +69,6 @@ public class RealMemory {
     }
 
     public static int requestSize(int requestedSize){
-
-
         int memoryCounterStartingPosition = Supervizor.getFullSupervizorMemory();
         int memoryCounter = 0;
         for (int i = Supervizor.getFullSupervizorMemory(); i < memory.length; i=i+wordSize){
@@ -109,15 +83,11 @@ public class RealMemory {
                     return memoryCounterStartingPosition;
                 }
                 memoryCounter = memoryCounter + wordSize;
-
-
             } else {
                 memoryCounterStartingPosition = i;
                 memoryCounter = 0;
             }
 //            System.out.println("MemoryCounterStartingPosition: " + memoryCounterStartingPosition + "; counter: " + memoryCounter + "; Elements found: " + memory[i] + " " + memory[i+1] + " " + memory[i+2] + " " + memory[i+3]);
-
-
         }
         return -1;
     }
@@ -128,6 +98,70 @@ public class RealMemory {
 
     public static void writeToMemory(int index, byte data){
         memory[index] = data;
+    }
+
+    public static byte pop(){
+        byte popped = memory[freeMemoryPointer-1];
+//        System.out.println("popped element = " + (char) popped);
+        removeElementFromMemory(freeMemoryPointer-1);
+        freeMemoryPointer--;
+        return popped;
+    }
+
+    public static byte getCommandInBytes(){
+        return pop();
+    }
+
+
+    public static String getCommand(VirtualMachine virtualMachine){
+//        byte character1 = RealMemory.getElementFromMemory(CPU.getSP());
+//        byte character2 = RealMemory.getElementFromMemory(CPU.getSP()+1);
+//        byte character3 = RealMemory.getElementFromMemory(CPU.getSP()+2);
+//        byte character4 = RealMemory.getElementFromMemory(CPU.getSP()+3);
+//        return cropWord(character1, character2, character3, character4);
+
+//        byte character1 = RealMemory.pop();
+//        byte character2 = RealMemory.pop();
+//        byte character3 = RealMemory.pop();
+//        byte character4 = RealMemory.pop();
+
+        byte character1 = virtualMachine.popElementFromVirtualMachineMemory();
+        byte character2 = virtualMachine.popElementFromVirtualMachineMemory();
+        byte character3 = virtualMachine.popElementFromVirtualMachineMemory();
+        byte character4 = virtualMachine.popElementFromVirtualMachineMemory();
+
+//        System.out.println("char1: " + (char) character1 + "; char2: " + (char) character2 + "; char3: " + (char) character3 + "; char4: " + (char) character4);
+
+        return cropWord(character1, character2, character3, character4);
+    }
+
+    public static String cropWord(byte character1, byte character2, byte character3, byte character4){
+        StringBuilder word = new StringBuilder();
+        if (character1 == 0){
+            if (character2 == 0){
+                if (character3 == 0){
+                    if (character4 == 0){
+//                        System.out.println("Illegal Argument encountered when fetching command");
+                        return null;
+                    } else {
+                        word.append((char) character4);
+                    }
+                } else {
+                    word.append((char) character3);
+                    word.append((char) character4);
+                }
+            } else {
+                word.append((char) character2);
+                word.append((char) character3);
+                word.append((char) character4);
+            }
+        } else {
+            word.append((char) character1);
+            word.append((char) character2);
+            word.append((char) character3);
+            word.append((char) character4);
+        }
+        return word.toString();
     }
 
 }
