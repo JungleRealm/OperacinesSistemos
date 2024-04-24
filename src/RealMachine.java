@@ -36,8 +36,8 @@ public class RealMachine {
             if (mount()) {
                 MODE = 1;
 
-                int supervisorMemoryPointer;
-                int externalMemoryPointer;
+                int supervisorMemoryPointer = Supervisor.getPtr();
+                int externalMemoryPointer = ExternalMemory.getPtr();
 
 //                userInput();
 
@@ -91,47 +91,28 @@ public class RealMachine {
                         break;
                     }
                 } else {
-                    System.out.println("Not enough memory in Real Memory");
-                    System.out.println("Checking External Memory...");
-                    externalMemoryPointer = ExternalMemory.requestMemory(FlashDrive.getShift());
-                    if (externalMemoryPointer < 0) {
-                        // NOT ENOUGH MEMORY IN EXTERNAL MEMORY AS WELL
-                        PI = 3;
-                        System.out.println("Not enough memory in External Memory");
-                        interruptHandler();
-                        break;
-                    }
+                    System.out.println("Moving data from Flash Memory to External Memory");
                     for (int i = 0; i < FlashDrive.getShift(); i++) {
                         ChannelDevice.xchg("FlashDrive", "ExternalMemory", FlashDrive.getPtr() + i, externalMemoryPointer + i);
                     }
                     System.out.println("Data successfully moved to External Memory");
 
-//                    System.out.println("-----------------------------");
-//                    ExternalMemory.printMemory();
+                    FlashDrive.clearMemory();
 
-//                    userInput();
-
-                    String selectedFile;
                     selectedFile = selectFile(getFileNames());
-//                        System.out.println(selectedFile);
                     MODE = 0;
                     supervisorMemoryPointer = Supervisor.requestMemory(ExternalMemory.getFileSize(selectedFile));
-//                        System.out.println(supervisorMemoryPointer);
                     MODE = 1;
                     if (supervisorMemoryPointer >= Supervisor.getPtr()) {
-//                            System.out.println("Supervisor memory pointer " + supervisorMemoryPointer);
                         System.out.println("Moving data from External Memory to Supervisor Memory");
-                        for (int i = 0; i < RealMemory.getFileSize(selectedFile); i++) {
+                        for (int i = 0; i < ExternalMemory.getFileSize(selectedFile); i++) {
                             ChannelDevice.xchg("ExternalMemory", "SupervisorMemory", ExternalMemory.getFileStartPointer(selectedFile) + i, supervisorMemoryPointer + i);
                         }
                         System.out.println("Success moving data from External Memory to Supervisor Memory");
 
-//                        userInput();
-//                        System.out.println("----------------------");
-//                        Supervisor.printSupervisorMemory();
-
-//                        userInput();
+                        System.out.println("Checking if syntax is correct");
                         if (!checkFileSyntax()) {
+                            PI = 3;
                             interruptHandler();
                             break;
                         }

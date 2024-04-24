@@ -1,19 +1,34 @@
 public class ExternalMemory {
-    private static int ptr = 0;
-    private static int memorySize = 2*16*16*4;
+
+    private static int ptr = Supervisor.getSupervisorSize();
+    private static int memoryMultiplier = 5;
+    private static int memorySize = memoryMultiplier * RealMachine.getBlockSize() * RealMachine.getWordSize() * RealMachine.getWords();
     private static byte[] memory = new byte[memorySize];
-    private static int shift = 0;
 
     public static void write(int index, byte data){
-        if (memory[index] == 0){
-            memory[index] = data;
-            shift++;
-        }
-        System.out.println("Attempting to write into memory slot that already has data");
+        memory[index] = data;
+//        if (memory[index] == 0){
+//            memory[index] = data;
+//        } else {
+//            System.out.println("Attempting to write into memory slot that already has data");
+//            RealMachine.setPI(1);
+//            return;
+//        }
+
+    }
+
+    public static void writeToSupervisor(int index, byte data){
+        memory[index] = data;
     }
 
     public static byte getData(int index){
         return memory[index];
+    }
+
+    public static void clearMemory(){
+        for (int i = ptr; i < memorySize; i++){
+            memory[i] = 0;
+        }
     }
 
 
@@ -21,17 +36,16 @@ public class ExternalMemory {
         return ptr;
     }
 
-    public static int getShift() {
-        return shift;
-    }
+//    public static int getShift() {
+//        return shift;
+//    }
 
     // TODO DELETE THIS METHOD
-    public static void printMemory(){
-//        System.out.println(ptr + " ; " + shift);
-        for (int i = ptr; i < ptr + shift; i++){
-            System.out.println("External Memory address: " + i + " data found: " + memory[i] + " char: " + (char) memory[i]);
-        }
-    }
+//    public static void printMemory(){
+//        for (int i = ptr; i < ptr + shift; i++){
+//            System.out.println("Real Memory address: " + i + " data found: " + memory[i] + " char: " + (char) memory[i]);
+//        }
+//    }
 
     public static int getMemorySize() {
         return memorySize;
@@ -41,17 +55,25 @@ public class ExternalMemory {
         int foundSize = 0;
         int pointerToStart = ptr;
         for (int i = ptr; i < memorySize; i++){
+            if (size > memorySize-i){
+                RealMachine.setPI(3);
+                return -1;
+            }
             if (getData(i) == 0){
                 foundSize++;
                 if (foundSize == size){
                     return pointerToStart;
                 }
             } else {
-                pointerToStart = i;
+                pointerToStart = i+1;
                 foundSize = 0;
             }
         }
         return -1;
+    }
+
+    public static void remove(int index){
+        memory[index] = 0;
     }
 
     public static int getFileSize(String fileName){
