@@ -1,27 +1,42 @@
 public class ChannelDevice {
+    public static void xchg(String from, String to, int fromStart, int toStart){
 
-    public static void moveFromRealMemoryToSupervizor(int fromStart, int fromStop) {
+        if (from.equals("FlashDrive") || from.equals("RealMemory") || from.equals("ExternalMemory") || from.equals("SupervisorMemory") || from.equals("VirtualMemory")){
+            if (to.equals("RealMemory") || to.equals("ExternalMemory") || to.equals("SupervisorMemory") || to.equals("VirtualMemory") || to.equals("PrinterMemory")){
 
-        for (int i = fromStart; i < fromStop; i++){
+                if (from.equals("FlashDrive") && to.equals("RealMemory")){
+                    RealMemory.write(toStart, FlashDrive.getData(fromStart));
+                }
 
-            Supervizor.writeToSupervizorMemory(Supervizor.getSupervizorMemoryEnd(), RealMemory.getElementFromMemory(i));
-//            System.out.println(Supervizor.getSupervizorMemoryEnd() + " <- " + RealMemory.getElementFromMemory(i));
-            RealMemory.removeElementFromMemory(i);
+                if (from.equals("FlashDrive") && to.equals("ExternalMemory")){
+                    ExternalMemory.write(toStart, FlashDrive.getData(fromStart));
+                }
+
+                if (from.equals("RealMemory") && to.equals("SupervisorMemory")){
+                    Supervisor.write(toStart, RealMemory.getData(fromStart));
+                }
+
+                if (from.equals("ExternalMemory") && to.equals("SupervisorMemory")){
+                    Supervisor.write(toStart, ExternalMemory.getData(fromStart));
+                }
+
+                if (from.equals("SupervisorMemory") && to.equals("VirtualMemory")){
+                    RealMemory.write(toStart, Supervisor.getData(fromStart));
+                }
+
+                if (from.equals("VirtualMemory") && to.equals("SupervisorMemory")){
+                    Supervisor.write(toStart, RealMemory.getData(fromStart));
+                }
+
+                if (from.equals("VirtualMemory") && to.equals("PrinterMemory")){
+                    Printer.write(toStart, RealMemory.getData(fromStart));
+                }
+
+            } else {
+                System.out.println("Channel Device could not recognise where data should be moved");
+            }
+        } else {
+            System.out.println("Channel Device could not recognise from which location data should be taken");
         }
     }
-
-    public static void moveFromSupervizorToVirtualMachineMemory(VirtualMachine virtualMachine){
-
-        for (int i = Supervizor.getSupervizoryMemoryStart(); i < Supervizor.getSupervizorMemoryEnd(); i++){
-//            System.out.println("stack pointer doring memory move: " + virtualMachine.getStackPointer());
-            virtualMachine.writeToVirtualMachineMemory(virtualMachine.getStackPointer(), Supervizor.getFromSupervizorMemory(i));
-            Supervizor.removeFromSupervizorMemory(i);
-        }
-
-    }
-
-    public static void moveFromVirtualMachineMemoryToPrinter(byte data){
-        Output.addToStack(data);
-    }
-
 }
