@@ -1,8 +1,3 @@
-/*
-Supervisor takes up from 0 -> 1024 in RealMemory memory.
-When checking if information will fit in a supervisor, RealMemory requestSize method is called.
-*/
-
 public class Supervisor {
 
     private static int memorySize = RealMachine.getBlockSize() * RealMachine.getWords() * RealMachine.getWordSize();
@@ -56,5 +51,4 @@ public class Supervisor {
             System.out.println("Supervisor memory address: " + i + " Data found: " + RealMemory.getData(i) + " char: " + (char) RealMemory.getData(i));
         }
     }
-
 }

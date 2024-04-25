@@ -58,7 +58,15 @@ public class FlashDrive {
     }
 
     public static void clearMemory(){
-        StringMemory = new String[StringMemory.length];
+        for (int i = 0; i < StringMemory.length; i++){
+            StringMemory[i] = null;
+        }
+    }
+
+    public static void clearByteMemory(){
+        for (int i = 0; i < memory.length; i++){
+            memory[i] = 0;
+        }
     }
 
     public static byte getData(int index){

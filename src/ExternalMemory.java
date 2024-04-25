@@ -14,11 +14,6 @@ public class ExternalMemory {
 //            RealMachine.setPI(1);
 //            return;
 //        }
-
-    }
-
-    public static void writeToSupervisor(int index, byte data){
-        memory[index] = data;
     }
 
     public static byte getData(int index){
@@ -36,16 +31,12 @@ public class ExternalMemory {
         return ptr;
     }
 
-//    public static int getShift() {
-//        return shift;
-//    }
-
     // TODO DELETE THIS METHOD
-//    public static void printMemory(){
-//        for (int i = ptr; i < ptr + shift; i++){
-//            System.out.println("Real Memory address: " + i + " data found: " + memory[i] + " char: " + (char) memory[i]);
-//        }
-//    }
+    public static void printMemory(){
+        for (int i = ptr; i < memory.length; i++){
+            System.out.println("Real Memory address: " + i + " data found: " + memory[i] + " char: " + (char) memory[i]);
+        }
+    }
 
     public static int getMemorySize() {
         return memorySize;
@@ -126,6 +117,4 @@ public class ExternalMemory {
         }
         return -1; // FILE WAS NOT FOUND
     }
-
-
 }

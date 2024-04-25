@@ -39,5 +39,4 @@ public class CPU {
     public static void resetZF(){
         ZF = 0;
     }
-
 }

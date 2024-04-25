@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Scanner;
 
 public class RealMachine {
@@ -35,18 +34,7 @@ public class RealMachine {
 
             if (mount()) {
                 MODE = 1;
-
                 int supervisorMemoryPointer = Supervisor.getPtr();
-                int externalMemoryPointer = ExternalMemory.getPtr();
-
-//                userInput();
-
-//                FlashDrive.testPrint();
-//                System.out.println("---------------------------------");
-//                userInput();
-//                FlashDrive.testBytePrint();
-
-//                userInput();
 
                 MODE = 0;
                 int realMemoryPointer = RealMemory.requestMemory(FlashDrive.getShift());
@@ -58,27 +46,18 @@ public class RealMachine {
                         ChannelDevice.xchg("FlashDrive", "RealMemory", FlashDrive.getPtr() + i, realMemoryPointer + i);
                     }
                     System.out.println("Data successfully moved to Real Memory");
+                    FlashDrive.clearByteMemory();
 
-                    FlashDrive.clearMemory();
-
-//                    System.out.println("-----------------------------");
-//                        RealMemory.printMemory();
-
-//                    userInput();
-
-                    selectedFile = selectFile(getFileNames());
-//                        System.out.println(selectedFile);
+                    selectedFile = selectFile(getFileNamesFromRealMemory());
                     MODE = 0;
                     supervisorMemoryPointer = Supervisor.requestMemory(RealMemory.getFileSize(selectedFile));
                     MODE = 1;
                     if (supervisorMemoryPointer >= Supervisor.getPtr()) {
-//                            System.out.println("Supervisor memory pointer " + supervisorMemoryPointer);
                         System.out.println("Moving data from Real Memory to Supervisor Memory");
                         for (int i = 0; i < RealMemory.getFileSize(selectedFile); i++) {
                             ChannelDevice.xchg("RealMemory", "SupervisorMemory", RealMemory.getFileStartPointer(selectedFile) + i, supervisorMemoryPointer + i);
                         }
                         System.out.println("Success moving data from Real Memory to Supervisor Memory");
-
                         System.out.println("Checking if syntax is correct");
                         if (!checkFileSyntax()) {
                             PI = 3;
@@ -91,15 +70,27 @@ public class RealMachine {
                         break;
                     }
                 } else {
+                    MODE = 0;
+                    int externalMemoryPointer = ExternalMemory.requestMemory(FlashDrive.getShift());
+                    MODE = 1;
+
+                    if (externalMemoryPointer < ExternalMemory.getPtr()){
+                        PI = 3;
+                        interruptHandler();
+                        if (stopRunning){
+                            break;
+                        }
+                    }
+
                     System.out.println("Moving data from Flash Memory to External Memory");
                     for (int i = 0; i < FlashDrive.getShift(); i++) {
                         ChannelDevice.xchg("FlashDrive", "ExternalMemory", FlashDrive.getPtr() + i, externalMemoryPointer + i);
                     }
+//                    ExternalMemory.printMemory();
                     System.out.println("Data successfully moved to External Memory");
+                    FlashDrive.clearByteMemory();
 
-                    FlashDrive.clearMemory();
-
-                    selectedFile = selectFile(getFileNames());
+                    selectedFile = selectFile(getFileNamesFromExternalMemory());
                     MODE = 0;
                     supervisorMemoryPointer = Supervisor.requestMemory(ExternalMemory.getFileSize(selectedFile));
                     MODE = 1;
@@ -109,7 +100,6 @@ public class RealMachine {
                             ChannelDevice.xchg("ExternalMemory", "SupervisorMemory", ExternalMemory.getFileStartPointer(selectedFile) + i, supervisorMemoryPointer + i);
                         }
                         System.out.println("Success moving data from External Memory to Supervisor Memory");
-
                         System.out.println("Checking if syntax is correct");
                         if (!checkFileSyntax()) {
                             PI = 3;
@@ -122,14 +112,11 @@ public class RealMachine {
                         break;
                     }
                 }
-
                 System.out.println("Syntax is correct");
                 System.out.println("Requesting memory for Virtual Machine from Real Memory");
                 int virtualMachinePTR = RealMemory.requestMemory(VirtualMachine.getSize());
-                if (virtualMachinePTR > RealMemory.getPtr()) {
-//                    System.out.println("PTR = " + virtualMachinePTR);
+                if (virtualMachinePTR >= RealMemory.getPtr()) {
                     System.out.println("Memory acquired");
-//                    userInput();
                     VirtualMachine virtualMachine = new VirtualMachine(virtualMachinePTR);
                     System.out.println("Virtual Machine created");
                     System.out.println("Initialising data transfer from Supervisor to Virtual Machine");
@@ -141,27 +128,24 @@ public class RealMachine {
                     Supervisor.clearMemory();
 
                     virtualMachine.setStackPointer(virtualMachinePTR + RealMemory.getFileSize(selectedFile) - 1);
-//                    System.out.println("SP = " + virtualMachine.getStackPointer());
-//                    virtualMachine.printVirtualMemory();
                     virtualMachine.setResultPtr(virtualMachine.getStackPointer()+1);
-//                    System.out.println("Result pointer = " + virtualMachine.getResultPtr());
                     virtualMachine.setResultStackPointer(virtualMachine.getResultPtr());
-//                    System.out.println("Result stack pointer = " + virtualMachine.getResultStackPointer());
-
 
                     doesUserWantStepping();
                     virtualMachine.exec();
-
-
-
-
-                    FlashDrive.clearMemory();
                     virtualMachine.clearMemory();
-                    Supervisor.clearMemory();
-                    RealMemory.clearMemory();
-                    resetStepping();
-                    resetStopRunning();
+                } else {
+                    PI = 3;
+                    interruptHandler();
                 }
+                FlashDrive.clearByteMemory();
+                Supervisor.clearMemory();
+                RealMemory.clearMemory();
+                ExternalMemory.clearMemory();
+                resetStepping();
+                resetStopRunning();
+                System.out.println("-------------------------");
+
             }
         }
     }
@@ -200,9 +184,6 @@ public class RealMachine {
         }
     }
 
-
-
-
     public static boolean mount() throws IOException {
 
         File[] roots = File.listRoots();
@@ -213,8 +194,6 @@ public class RealMachine {
                 break;
             }
         }
-
-        // Print the result
         if (eDriveExists) {
             System.out.println("E flash drive is inserted");
             FlashDrive.load();
@@ -238,7 +217,6 @@ public class RealMachine {
         }
     }
 
-
     public static String selectFile(ArrayList<String> fileNames){
         Scanner scanner = new Scanner(System.in);
         String input;
@@ -254,7 +232,7 @@ public class RealMachine {
         }
     }
 
-    public static ArrayList<String> getFileNames(){
+    public static ArrayList<String> getFileNamesFromRealMemory(){
         ArrayList<String> fileNames = new ArrayList<>();
         StringBuilder characters = new StringBuilder();
         for (int i = RealMemory.getPtr(); i < RealMemory.getMemorySize(); i++){
@@ -272,7 +250,27 @@ public class RealMachine {
                 }
             }
         }
-//        System.out.println("Found files: " + fileNames);
+        return fileNames;
+    }
+
+    public static ArrayList<String> getFileNamesFromExternalMemory(){
+        ArrayList<String> fileNames = new ArrayList<>();
+        StringBuilder characters = new StringBuilder();
+        for (int i = ExternalMemory.getPtr(); i < ExternalMemory.getMemorySize(); i++){
+            if ((char) ExternalMemory.getData(i) == '-' && (char) ExternalMemory.getData(i+1) == '-' && (char) ExternalMemory.getData(i+2) == '-' && (char) ExternalMemory.getData(i+3) == '-' ){
+                i = i + 4;
+                int innerCounter = i;
+                if (ExternalMemory.getData(innerCounter + 1) != 0){
+                    while((char) ExternalMemory.getData(innerCounter) != '$'){
+                        characters.append((char) ExternalMemory.getData(innerCounter));
+                        innerCounter++;
+                        i++;
+                    }
+                    fileNames.add(characters.toString());
+                    characters.setLength(0);
+                }
+            }
+        }
         return fileNames;
     }
 
@@ -313,6 +311,7 @@ public class RealMachine {
                 // INVALID ADDRESS
                 MODE = 0;
                 System.out.println("PI was found as 1");
+                System.out.println("INVALID ADDRESS ENCOUNTERED");
                 resetPI();
                 stopRunning = true;
                 break;
@@ -320,6 +319,7 @@ public class RealMachine {
                 // UNRECOGNISED COMMAND
                 MODE = 0;
                 System.out.println("PI was found as 2");
+                System.out.println("UNRECOGNISED COMMAND ERROR");
                 resetPI();
                 stopRunning = true;
                 break;
@@ -356,7 +356,6 @@ public class RealMachine {
                 stopRunning = true;
                 break;
         }
-
         if (TI == 0){
             // TIMER INTERRUPT
             MODE = 0;
@@ -397,7 +396,6 @@ public class RealMachine {
     public static void decrementTI(){
         TI--;
     }
-
 
     public static boolean checkFileSyntax(){
         String command;

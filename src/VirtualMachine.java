@@ -18,7 +18,6 @@ public class VirtualMachine {
 
     public void exec(){
         String command;
-
         while (true){
             if (RealMachine.getStepping()){
                 RealMachine.userInput();
@@ -39,7 +38,6 @@ public class VirtualMachine {
                 }
             }
         }
-
     }
 
     public String getCommand(){
@@ -49,7 +47,6 @@ public class VirtualMachine {
         }
         return (commandCharacters.toString()).trim();
     }
-
 
     public void interpretCommand(String command){
         byte character1;
@@ -108,18 +105,14 @@ public class VirtualMachine {
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand1 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand1 = " + operand1);
 
                 character1 = popFromStack();
                 character2 = popFromStack();
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand2 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand2 = " + operand2);
 
                 result = CPU.add(operand1, operand2);
-
-//                System.out.println("Result = " + result);
                 resultBytes = convertStringToBytes(String.valueOf(result));
 
                 if (RealMachine.getStepping()){
@@ -146,18 +139,14 @@ public class VirtualMachine {
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand1 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand1 = " + operand1);
 
                 character1 = popFromStack();
                 character2 = popFromStack();
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand2 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand2 = " + operand2);
 
                 result = CPU.sub(operand1, operand2);
-
-//                System.out.println("Result = " + result);
                 resultBytes = convertStringToBytes(String.valueOf(result));
 
                 if (RealMachine.getStepping()){
@@ -184,18 +173,14 @@ public class VirtualMachine {
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand1 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand1 = " + operand1);
 
                 character1 = popFromStack();
                 character2 = popFromStack();
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand2 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand2 = " + operand2);
 
                 result = CPU.mul(operand1, operand2);
-
-//                System.out.println("Result = " + result);
                 resultBytes = convertStringToBytes(String.valueOf(result));
 
                 if (RealMachine.getStepping()){
@@ -222,14 +207,12 @@ public class VirtualMachine {
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand1 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand1 = " + operand1);
 
                 character1 = popFromStack();
                 character2 = popFromStack();
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand2 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand2 = " + operand2);
 
                 result = CPU.div(operand1, operand2);
 
@@ -266,25 +249,16 @@ public class VirtualMachine {
 
             case "FORK":
                 System.out.println("FORK reached");
-//                for (int i = RealMemory.getPtr(); i < RealMemory.getMemorySize(); i++){
-//                    System.out.println("Address: " + i + " Data: " + (char) RealMemory.getData(i));
-//                }
-//                System.out.println("Stack pointer = " + stackPointer);
                 fork();
-
-
                 break;
 
             case "PRTN":
                 System.out.println("PRTN reached");
-//                System.out.println("Result PTR = " + resultPtr);
-//                System.out.println("Result SP = " + resultStackPointer);
                 int printerCounter = 0;
                 System.out.println("Moving data from Virtual Machine memory to Printer memory");
                 for (int i = resultPtr; i < resultStackPointer; i = i + virtualMachineWordSize){
                     for (int j = virtualMachineWordSize-1; j >= 0; j--){
                         if (getData(i+j) != 0){
-//                            System.out.println("Result address: " + (i+j) + " data found " + (char) getData(i+j));
                             ChannelDevice.xchg("VirtualMemory", "PrinterMemory", (i+j), Printer.getPtr() + printerCounter);
                             printerCounter++;
                         }
@@ -333,7 +307,6 @@ public class VirtualMachine {
                             System.out.println("Comparing values: " + operand1 + " and " + operand2);
                             System.out.println("Operand2 is bigger. Putting 2 at the top of the stack");
                         }
-
                         for (int i = resultBytes.length-1; i >= 0 ; i--){
                             pushToStack(resultBytes[i]);
                         }
@@ -344,7 +317,6 @@ public class VirtualMachine {
                             System.out.println("Comparing values: " + operand1 + " and " + operand2);
                             System.out.println("Operand1 is bigger. Putting 1 at the top of the stack");
                         }
-
                         for (int i = resultBytes.length-1; i >= 0 ; i--){
                             pushToStack(resultBytes[i]);
                         }
@@ -380,7 +352,6 @@ public class VirtualMachine {
                     System.out.println("Second from the top: " + (char) character5 + " " + (char) character6 + " " + (char) character7 + " " + (char) character8);
                     System.out.println("Elements swapped");
                 }
-
                 break;
 
             case "INC":
@@ -391,11 +362,8 @@ public class VirtualMachine {
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand1 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand1 = " + operand1);
 
                 result = CPU.add(operand1, 1);
-
-//                System.out.println("Result = " + result);
                 resultBytes = convertStringToBytes(String.valueOf(result));
 
                 if (RealMachine.getStepping()){
@@ -409,9 +377,7 @@ public class VirtualMachine {
                     } else {
                         pushToStack(resultBytes[i]);
                     }
-
                 }
-
                 break;
 
             case "DEC":
@@ -422,11 +388,8 @@ public class VirtualMachine {
                 character3 = popFromStack();
                 character4 = popFromStack();
                 operand1 = convertBytesToInt(character1, character2, character3, character4);
-//                System.out.println("Operand1 = " + operand1);
 
                 result = CPU.sub(operand1, 1);
-
-//                System.out.println("Result = " + result);
                 resultBytes = convertStringToBytes(String.valueOf(result));
 
                 if (RealMachine.getStepping()){
@@ -441,7 +404,6 @@ public class VirtualMachine {
                         pushToStack(resultBytes[i]);
                     }
                 }
-
                 break;
 
             case "HALT":
@@ -458,15 +420,8 @@ public class VirtualMachine {
     }
 
     public int fork(){
-
-//        System.out.println("-----------------------------");
         Supervisor.clearMemory();
-//        Supervisor.printSupervisorMemory();
-//        System.out.println("----------------------------");
-
         int remainingSize = stackPointer - ptr;
-//        System.out.println("Remaining size = " + remainingSize);
-
         if (RealMachine.getStepping()){
             System.out.println("Requesting memory for new virtual machine in supervisor");
         }
@@ -481,7 +436,6 @@ public class VirtualMachine {
         if (RealMachine.getStepping()){
             System.out.println("Memory acquired");
         }
-//        System.out.println("New ptr = " + newPtr);
         int counter = 0;
         if (RealMachine.checkFileSyntax()){
             if (RealMachine.getStepping()){
@@ -495,18 +449,15 @@ public class VirtualMachine {
             if (RealMachine.getStepping()){
                 System.out.println("Copying completed");
             }
-
             if (RealMachine.getStepping()){
                 System.out.println("Requesting memory from Real Memory");
             }
-
 
             newPtr = RealMemory.requestMemory(remainingSize);
             if (newPtr < 0){
                 RealMachine.setPI(3);
                 return -1;
             }
-
 
             if (RealMachine.getStepping()){
                 System.out.println("Memory Acquired");
@@ -532,10 +483,8 @@ public class VirtualMachine {
             virtualMachine.setStackPointer(newPtr+remainingSize);
             virtualMachine.setResultPtr(virtualMachine.getStackPointer()+1);
             virtualMachine.setResultStackPointer(virtualMachine.getResultPtr());
-//            virtualMachine.printVirtualMemory();
             virtualMachine.exec();
             RealMachine.resetStopRunning();
-
         } else {
             RealMachine.setPI(2);
         }
@@ -585,9 +534,6 @@ public class VirtualMachine {
         }
     }
 
-
-
-
     public byte getData(int index){
         return RealMemory.getData(index);
     }
@@ -599,7 +545,6 @@ public class VirtualMachine {
     public void setStackPointer(int stackPointer) {
         this.stackPointer = stackPointer;
     }
-
 
     public void setResultPtr(int resultPtr) {
         this.resultPtr = resultPtr;
@@ -646,7 +591,6 @@ public class VirtualMachine {
     }
 
 
-
     //TODO DELETE THIS METHOD
     public void printVirtualMemory(){
         for (int i = ptr; i < ptr + size; i++){
@@ -662,5 +606,4 @@ public class VirtualMachine {
             System.out.println("Result Memory stack pointer = " + i + " Found data: " + (char) RealMemory.getData(i));
         }
     }
-
 }

@@ -15,7 +15,6 @@ public class Printer {
             System.out.println("Printer output: " + (char) memory[i]);
         }
         clearMemory();
-
     }
 
     public static void clearMemory(){
@@ -27,5 +26,4 @@ public class Printer {
     public static int getPtr() {
         return ptr;
     }
-
 }
